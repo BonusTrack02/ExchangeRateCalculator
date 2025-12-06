@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">ExchangeRateCalculator</string>
+    <string name="exchange_rate_calculation">환율 계산</string>
+    <string name="remittance_country">송금국가</string>
+    <string name="remittance_country_value">미국(USD)</string>
+    <string name="recipient_country">수취국가</string>
+    <string name="recipient_country_value">한국 (KRW)</string>
+    <string name="exchange_rate">환율</string>
+    <string name="exchange_rate_value">1,130.05 KRW / USD</string>
+    <string name="inquiry_time">조회시간</string>
+    <string name="inquiry_time_value">2019-03-20 16:13</string>
+    <string name="remittance_amount">송금액</string>
+    <string name="remittance_unit">USD</string>
+    <string name="received_amount">수취금액은 %1$,.2f KRW 입니다</string>
+    <string name="colon">\u00A0:\u00A0</string>
+    <string name="calculate">계산하기</string>
 </resources>

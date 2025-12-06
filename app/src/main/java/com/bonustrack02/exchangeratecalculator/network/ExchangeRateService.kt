@@ -10,7 +10,7 @@ interface ExchangeRateService {
     suspend fun getExchangeRates(
         @Query("access_key") accessKey: String,
         @Query("currencies") currencies: String,
-        @Query("source") source: String,
-        @Query("format") format: Int,
+        @Query("source") source: String = "USD",
+        @Query("format") format: Int = 1,
     ): Response<ExchangeRateResponse>
 }
