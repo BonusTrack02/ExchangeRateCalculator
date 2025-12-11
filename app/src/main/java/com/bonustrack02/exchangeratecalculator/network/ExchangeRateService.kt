@@ -6,9 +6,9 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface ExchangeRateService {
-    @GET("/api/live/")
+    @GET("/api/live")
     suspend fun getExchangeRates(
-        @Query("access_key") accessKey: String,
+        @Query("access_key") accessKey: String = "bca10c940eef7c499a1327e792aff039",
         @Query("currencies") currencies: String,
         @Query("source") source: String = "USD",
         @Query("format") format: Int = 1,

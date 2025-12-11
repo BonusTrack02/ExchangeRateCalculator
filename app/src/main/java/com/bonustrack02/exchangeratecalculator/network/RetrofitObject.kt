@@ -9,7 +9,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object RetrofitObject {
-    fun getInstance(baseUrl: String): Retrofit {
+    fun getInstance(baseUrl: String = "http://apilayer.net"): Retrofit {
         val clientBuilder = OkHttpClient.Builder()
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY

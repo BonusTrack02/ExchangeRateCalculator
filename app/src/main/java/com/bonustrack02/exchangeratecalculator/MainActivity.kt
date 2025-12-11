@@ -1,6 +1,7 @@
 package com.bonustrack02.exchangeratecalculator
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,12 +19,15 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,12 +39,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bonustrack02.exchangeratecalculator.network.ExchangeRateService
+import com.bonustrack02.exchangeratecalculator.network.RetrofitObject
 import com.bonustrack02.exchangeratecalculator.ui.theme.ExchangeRateCalculatorTheme
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+const val SOURCE_CURRENCY = "USD"
 
 data class CountryOption(
     @StringRes val nameResId: Int,
     @StringRes val currencyResId: Int,
-    @StringRes val fullStringResId: Int
+    @StringRes val fullStringResId: Int,
+    val currencyCode: String
 )
 
 class MainActivity : ComponentActivity() {
@@ -59,13 +72,57 @@ class MainActivity : ComponentActivity() {
 fun ExchangeRateCalculatorScreen(modifier: Modifier = Modifier) {
     var remittanceAmount by remember { mutableStateOf("") }
     var displayedReceivedAmount by remember { mutableStateOf(0.0) }
+    var currentExchangeRate by remember { mutableStateOf(0.0) }
+    var lastUpdateTime by remember { mutableStateOf("N/A") }
+    var showErrorDialog by remember { mutableStateOf(false) }
+
+    val exchangeRateService = remember { RetrofitObject.getInstance().create(ExchangeRateService::class.java) }
 
     val countryOptions = listOf(
-        CountryOption(R.string.recipient_country_korea_name, R.string.recipient_country_korea_currency, R.string.recipient_country_korea),
-        CountryOption(R.string.recipient_country_japan_name, R.string.recipient_country_japan_currency, R.string.recipient_country_japan),
-        CountryOption(R.string.recipient_country_philippines_name, R.string.recipient_country_philippines_currency, R.string.recipient_country_philippines)
+        CountryOption(R.string.recipient_country_korea_name, R.string.recipient_country_korea_currency, R.string.recipient_country_korea, "KRW"),
+        CountryOption(R.string.recipient_country_japan_name, R.string.recipient_country_japan_currency, R.string.recipient_country_japan, "JPY"),
+        CountryOption(R.string.recipient_country_philippines_name, R.string.recipient_country_philippines_currency, R.string.recipient_country_philippines, "PHP")
     )
     var selectedCountry by remember { mutableStateOf(countryOptions[0]) }
+
+    LaunchedEffect(selectedCountry) {
+        launch {
+            try {
+                val response = exchangeRateService.getExchangeRates(
+                    currencies = selectedCountry.currencyCode,
+                    source = SOURCE_CURRENCY
+                )
+                if (response.isSuccessful) {
+                    val exchangeRateResponse = response.body()
+                    exchangeRateResponse?.let {
+                        val rate = it.quotes[SOURCE_CURRENCY + selectedCountry.currencyCode]
+                        if (rate != null) {
+                            currentExchangeRate = rate
+                            // Recalculate displayed amount if user already entered remittance
+                            if (remittanceAmount.isNotEmpty()) {
+                                val amount = remittanceAmount.toDoubleOrNull() ?: 0.0
+                                displayedReceivedAmount = amount * currentExchangeRate
+                            }
+                            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                            lastUpdateTime = sdf.format(Date(it.timestamp * 1000))
+                        } else {
+                            Log.e("ExchangeRate", "Exchange rate not found for ${selectedCountry.currencyCode}")
+                            currentExchangeRate = 0.0
+                            lastUpdateTime = "Error"
+                        }
+                    }
+                } else {
+                    Log.e("ExchangeRate", "API Error: ${response.code()} - ${response.message()}")
+                    currentExchangeRate = 0.0
+                    lastUpdateTime = "Error"
+                }
+            } catch (e: Exception) {
+                Log.e("ExchangeRate", "Network Error: ${e.localizedMessage}")
+                currentExchangeRate = 0.0
+                lastUpdateTime = "Error"
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -127,12 +184,17 @@ fun ExchangeRateCalculatorScreen(modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.height(8.dp))
                 InfoRow(
                     label = stringResource(R.string.exchange_rate),
-                    value = stringResource(R.string.exchange_rate_value)
+                    value = stringResource(
+                        R.string.exchange_rate_value,
+                        currentExchangeRate,
+                        selectedCountry.currencyCode,
+                        SOURCE_CURRENCY
+                    )
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 InfoRow(
                     label = stringResource(R.string.inquiry_time),
-                    value = stringResource(R.string.inquiry_time_value)
+                    value = lastUpdateTime
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 RemittanceAmountRow(
@@ -143,17 +205,34 @@ fun ExchangeRateCalculatorScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = stringResource(R.string.received_amount, displayedReceivedAmount),
+                text = stringResource(R.string.received_amount, displayedReceivedAmount, selectedCountry.currencyCode),
                 fontSize = 20.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(onClick = {
-                val amount = remittanceAmount.toDoubleOrNull() ?: 0.0
-                displayedReceivedAmount = amount * 1130.05
+                val amount = remittanceAmount.toDoubleOrNull() ?: -1.0
+                if (amount <= 0 || amount > 10000) {
+                    showErrorDialog = true
+                } else {
+                    displayedReceivedAmount = amount * currentExchangeRate
+                }
             }) {
                 Text(text = stringResource(id = R.string.calculate))
+            }
+
+            if (showErrorDialog) {
+                AlertDialog(
+                    onDismissRequest = { showErrorDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = { showErrorDialog = false }) {
+                            Text("확인")
+                        }
+                    },
+                    title = { Text("오류") },
+                    text = { Text("송금액이 바르지 않습니다") }
+                )
             }
         }
     }

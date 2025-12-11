@@ -8,12 +8,12 @@
     <string name="recipient_country_japan">일본(JPY)</string>
     <string name="recipient_country_philippines">필리핀(PHP)</string>
     <string name="exchange_rate">환율</string>
-    <string name="exchange_rate_value">1,130.05 KRW / USD</string>
+    <string name="exchange_rate_value">%1$,.2f %2$s / %3$s</string>
     <string name="inquiry_time">조회시간</string>
     <string name="inquiry_time_value">2019-03-20 16:13</string>
     <string name="remittance_amount">송금액</string>
     <string name="remittance_unit">USD</string>
-    <string name="received_amount">수취금액은 %1$,.2f KRW 입니다</string>
+    <string name="received_amount">수취금액은 %1$,.2f %2$s 입니다</string>
     <string name="colon">\u00A0:\u00A0</string>
     <string name="calculate">계산하기</string>
 
