@@ -57,8 +57,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ExchangeRateCalculatorScreen(modifier: Modifier = Modifier) {
-    var remittanceAmount by remember { mutableStateOf("100") }
-    val receivedAmount = (remittanceAmount.toDoubleOrNull() ?: 0.0) * 1130.05
+    var remittanceAmount by remember { mutableStateOf("") }
+    var displayedReceivedAmount by remember { mutableStateOf(0.0) }
 
     val countryOptions = listOf(
         CountryOption(R.string.recipient_country_korea_name, R.string.recipient_country_korea_currency, R.string.recipient_country_korea),
@@ -122,7 +122,7 @@ fun ExchangeRateCalculatorScreen(modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.height(8.dp))
                 InfoRow(
                     label = stringResource(R.string.recipient_country),
-                    value = stringResource(selectedCountry.fullStringResId) // 전체 문자열 리소스 사용
+                    value = stringResource(selectedCountry.fullStringResId)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 InfoRow(
@@ -143,13 +143,16 @@ fun ExchangeRateCalculatorScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = stringResource(R.string.received_amount, receivedAmount),
+                text = stringResource(R.string.received_amount, displayedReceivedAmount),
                 fontSize = 20.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = {
+                val amount = remittanceAmount.toDoubleOrNull() ?: 0.0
+                displayedReceivedAmount = amount * 1130.05
+            }) {
                 Text(text = stringResource(id = R.string.calculate))
             }
         }
