@@ -4,7 +4,9 @@
     <string name="remittance_country">송금국가</string>
     <string name="remittance_country_value">미국(USD)</string>
     <string name="recipient_country">수취국가</string>
-    <string name="recipient_country_value">한국 (KRW)</string>
+    <string name="recipient_country_korea">한국(KRW)</string>
+    <string name="recipient_country_japan">일본(JPY)</string>
+    <string name="recipient_country_philippines">필리핀(PHP)</string>
     <string name="exchange_rate">환율</string>
     <string name="exchange_rate_value">1,130.05 KRW / USD</string>
     <string name="inquiry_time">조회시간</string>
@@ -14,4 +16,11 @@
     <string name="received_amount">수취금액은 %1$,.2f KRW 입니다</string>
     <string name="colon">\u00A0:\u00A0</string>
     <string name="calculate">계산하기</string>
+
+    <string name="recipient_country_korea_name">한국</string>
+    <string name="recipient_country_korea_currency">(KRW)</string>
+    <string name="recipient_country_japan_name">일본</string>
+    <string name="recipient_country_japan_currency">(JPY)</string>
+    <string name="recipient_country_philippines_name">필리핀</string>
+    <string name="recipient_country_philippines_currency">(PHP)</string>
 </resources>
